@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Goat Hash</title>
+    <link rel="icon" type="image/png" href="goat.png">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&amp;family=Geist+Mono:wght@400&amp;family=Inter:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Crypto JS for generating hash list -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-md4@0.3.2/build/md4.min.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#106df9",
+                        "background-light": "#ffffff",
+                        "background-dark": "#0f1723",
+                        "surface": "#fafafa",
+                        "text-main": "#111827",
+                        "text-muted": "#8b8d98",
+                        "border-color": "#eaeaea",
+                        "border-light": "#eaeaea"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Geist", "sans-serif"],
+                        "mono": ["JetBrains Mono", "Geist Mono", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "6px",
+                        "md": "6px",
+                        "lg": "8px",
+                        "xl": "12px",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        "soft": "0 4px 12px rgba(0,0,0,0.05)"
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Geist', sans-serif;
+            background-color: #ffffff;
+            color: #111827;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', 'Geist Mono', monospace;
+        }
+
+        /* Loading Animations */
+        .animate-spin-slow {
+            animation: spin 1s linear infinite;
+        }
+
+        .animate-pulse-fast {
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.2s ease-out forwards;
+        }
+
+        /* Copy Button States */
+        .copy-btn.copied .copy-icon {
+            display: none !important;
+        }
+
+        .copy-btn.copied .check-icon {
+            display: block !important;
+            color: #106df9;
+        }
+
+        .check-icon {
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body
+    class="min-h-screen w-full flex flex-col items-center justify-center bg-background-light dark:bg-background-dark antialiased selection:bg-primary/20 text-text-main relative">
+    
+    <!-- Top Right Corner Social Badges -->
+    <div class="absolute top-4 right-6 sm:top-6 sm:right-8 flex items-center gap-4 z-40">
+        <a href="#" class="text-text-muted hover:text-text-main transition-colors" title="GitHub" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        </a>
+        <a href="#" class="text-text-muted hover:text-[#0a66c2] transition-colors" title="LinkedIn" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+        </a>
+    </div>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-[560px] px-4 sm:px-0 flex flex-col items-center">
+
+        <!-- Header / Logo -->
+        <div class="flex flex-col items-center mb-6 text-center select-none w-full max-w-[400px]">
+            <img src="goat.png" alt="Goat Hash Logo" class="w-48 h-48 mb-4 object-contain">
+            <h1 class="text-text-main font-display font-bold text-[40px] tracking-[-0.04em] cursor-pointer" onclick="window.location.reload()">Goat Hash</h1>
+            <p class="text-text-muted text-[13px] font-medium tracking-tight mb-4">
+                Lightning-fast lookup across <span class="text-primary font-bold">14,299,641</span> records
+            </p>
+        </div>
+
+        <!-- Search Input Area -->
+        <form id="searchForm" class="w-full relative group mb-3">
+            <!-- Transparent spacer for symmetry -->
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none opacity-0">
+                <span class="material-symbols-outlined text-text-muted" style="font-size: 20px;">search</span>
+            </div>
+
+
+            <!-- The Input -->
+            <input id="searchInput" autocomplete="off"
+                class="w-full h-[44px] bg-background-light border border-border-light rounded text-text-main font-mono text-[13px] text-center pr-12 focus:outline-none focus:border-black focus:ring-1 focus:ring-black shadow-sm transition-colors duration-150"
+                placeholder="Paste hash or type word..." spellcheck="false" type="text" />
+
+
+            <!-- Right side icons (Shortcut / Spinner / Clear) -->
+            <div id="inputRightSide" class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                <!-- Hidden Shortcut -->
+                <kbd id="shortcutHint" class="hidden">
+                    ⌘ K
+                </kbd>
+
+
+                <!-- Clear Button -->
+                <button type="button" id="clearBtn"
+                    class="hidden flex items-center justify-center w-[24px] h-[24px] rounded hover:bg-surface text-text-muted transition-colors opacity-0 group-hover:opacity-100"
+                    title="Clear">
+                    <span class="material-symbols-outlined text-[18px]" data-icon="close">close</span>
+                </button>
+
+                <!-- Spinner (Hidden by default) -->
+                <svg id="loadingSpinner" class="hidden animate-spin-slow h-[14px] w-[14px] text-primary mr-2"
+                    fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        fill="currentColor"></path>
+                </svg>
+            </div>
+        </form>
+
+        <!-- State 3: Skeleton Loader -->
+        <div id="skeletonLoader"
+            class="w-full bg-surface border border-border-color rounded shadow-soft p-3 flex flex-col gap-2 opacity-100 transition-opacity duration-300 hidden">
+            <div class="h-2.5 w-3/4 bg-border-color rounded animate-pulse-fast"></div>
+            <div class="h-2.5 w-1/2 bg-border-color rounded animate-pulse-fast" style="animation-delay: 150ms;"></div>
+            <div class="h-2.5 w-5/6 bg-border-color rounded animate-pulse-fast" style="animation-delay: 300ms;"></div>
+        </div>
+
+        <!-- State 2: Plaintext Result Card (When a Hash is entered) -->
+        <div id="plaintextCard"
+            class="w-full bg-background-light border border-border-light rounded shadow-soft p-4 relative animate-fade-in-up hidden">
+            <!-- Algorithm Tag -->
+            <div class="absolute top-3 left-4">
+                <span id="algoTag"
+                    class="font-display font-medium text-[10px] uppercase tracking-[0.05em] text-text-muted bg-surface px-1.5 py-0.5 rounded border border-border-light">
+                    HASH
+                </span>
+            </div>
+            <!-- Copy Button -->
+            <button id="copyPlaintextBtn" aria-label="Copy to clipboard"
+                class="copy-btn absolute top-2 right-2 w-[28px] h-[28px] flex items-center justify-center rounded hover:bg-surface transition-colors focus:outline-none group/btn"
+                title="Copy to clipboard">
+                <span
+                    class="material-symbols-outlined text-text-muted text-[18px] copy-icon group-hover/btn:text-text-main transition-colors">content_copy</span>
+                <span class="material-symbols-outlined text-[18px] check-icon">check</span>
+            </button>
+            <!-- Plaintext Result -->
+            <div class="mt-6">
+                <p id="plaintextResultText"
+                    class="font-mono text-[22px] text-text-main leading-tight break-all selection:bg-primary/20">
+                    <!-- Data goes here -->
+                </p>
+            </div>
+        </div>
+
+        <!-- State 1: Hash List Container (When a String/Plaintext is entered) -->
+        <div id="hashListContainer" class="w-full flex flex-col gap-0.5 mt-1 hidden animate-fade-in-up">
+            <!-- Hash Rows generated dynamically -->
+        </div>
+
+        <!-- Error State -->
+        <div id="errorContainer"
+            class="w-full hidden flex items-center justify-center py-4 text-red-500 text-[13px] bg-red-50 rounded border border-red-100 mt-2">
+            <span class="material-symbols-outlined text-[18px] mr-2">error</span>
+            <span id="errorMessage">Hash not found</span>
+        </div>
+
+    </main>
+
+    <!-- Bottom Right About Button -->
+    <div class="fixed bottom-4 right-6 sm:bottom-6 sm:right-8 z-40">
+        <button id="aboutBtn" class="text-text-muted hover:text-text-main transition-colors flex items-center justify-center focus:outline-none" title="About Goat Hash" aria-label="About">
+            <span class="material-symbols-outlined text-[28px]">info</span>
+        </button>
+    </div>
+
+    <!-- About Modal -->
+    <div id="aboutModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-background-light dark:bg-background-dark border border-border-light rounded-xl shadow-xl w-full max-w-[480px] p-6 sm:p-8 transform scale-95 transition-all duration-200" id="aboutModalContent">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-[20px] font-bold font-display text-text-main">About Goat Hash</h2>
+                <button id="closeAboutBtn" class="text-text-muted hover:text-text-main transition-colors focus:outline-none flex items-center justify-center w-8 h-8 rounded hover:bg-surface">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="space-y-4 text-[14px] text-text-muted font-sans leading-relaxed">
+                <p>
+                    <strong class="text-text-main font-semibold">How it works?</strong><br/>
+                    Goat Hash uses a "Serverless Lookup" architecture. For MD5 and NTLM, we use <strong class="text-text-main">High-Speed Sharding</strong>. The 14.3M database is split into 16 compressed chunks. When you search, the site only downloads the single tiny piece (~30KB) that contains your hash, making it instant even on slow connections.
+                </p>
+                <p>
+                    <strong class="text-text-main font-semibold">Offline Scanning</strong><br/>
+                    For SHA1 and SHA256, we use a custom <strong class="text-text-main">WebWorker engine</strong>. It streams a highly-compressed wordlist of 14.3 million entries into your browser's background thread, searching for a match on-the-fly. This allows massive searches without requiring multi-gigabyte server databases.
+                </p>
+                <p>
+                    <strong class="text-text-main font-semibold">Privacy First</strong><br/>
+                    Because all processing happens in <strong class="text-primary font-bold">your browser</strong>, no one but you knows what you are searching. Our database is hosted for free on GitHub Pages using static file ranges, ensuring it stays online forever without costs.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
